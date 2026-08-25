@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <string.h>  
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -59,84 +59,7 @@ static void MX_USART1_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void uart_send(const char *s)
-{
-  HAL_UART_Transmit(&huart2, (uint8_t *)s, strlen(s), HAL_MAX_DELAY);
-}
 
-void uart_send_hex(uint8_t value)
-{
-  const char hex[] = "0123456789ABCDEF";
-  char buf[3];
-
-  buf[0] = hex[(value >> 4) & 0x0F];
-  buf[1] = hex[value & 0x0F];
-  buf[2] = '\0';
-
-  uart_send(buf);
-}
-
-void i2c1_init_register(void)
-{
-  RCC->APB2ENR |= RCC_APB2ENR_IOPBEN;
-  RCC->APB1ENR |= RCC_APB1ENR_I2C1EN;
-
-  GPIOB->CRL &= ~(0xFFu << 24);
-  GPIOB->CRL |=  (0xFFu << 24);
-
-  I2C1->CR1 &= ~I2C_CR1_PE;
-
-  I2C1->CR2 = 8;
-  I2C1->CCR = 40;
-  I2C1->TRISE = 9;
-
-  I2C1->CR1 |= I2C_CR1_PE;
-}
-
-void i2c_scan_exercise(void)
-{
-  uart_send("\r\nScanning I2C bus...\r\n");
-
-  for (uint8_t a = 1; a < 128; a++)
-  {
-    I2C1->CR1 |= I2C_CR1_START;
-
-    uint32_t timeout = 100000;
-    while (!(I2C1->SR1 & I2C_SR1_SB) && --timeout);
-
-    if (timeout == 0)
-    {
-      I2C1->CR1 |= I2C_CR1_STOP;
-      continue;
-    }
-
-    I2C1->DR = (a << 1) | 0;
-
-    timeout = 100000;
-    while (!(I2C1->SR1 & (I2C_SR1_ADDR | I2C_SR1_AF)) && --timeout);
-
-    if (I2C1->SR1 & I2C_SR1_ADDR)
-    {
-      (void)I2C1->SR1;
-      (void)I2C1->SR2;
-
-      uart_send("Found device at 0x");
-      uart_send_hex(a);
-      uart_send("\r\n");
-    }
-
-    if (I2C1->SR1 & I2C_SR1_AF)
-    {
-      I2C1->SR1 &= ~I2C_SR1_AF;
-    }
-
-    I2C1->CR1 |= I2C_CR1_STOP;
-
-    for (volatile uint32_t d = 0; d < 1000; d++);
-  }
-
-  uart_send("Done.\r\n");
-}
 /* USER CODE END 0 */
 
 /**
@@ -171,10 +94,7 @@ int main(void)
   MX_I2C1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-uart_send("\r\nI2C Bus Scanner\r\n");
 
-i2c1_init_register();
-i2c_scan_exercise();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -188,7 +108,7 @@ i2c_scan_exercise();
     
   /* USER CODE END 3 */
 }
-
+}
 /**
   * @brief System Clock Configuration
   * @retval None
