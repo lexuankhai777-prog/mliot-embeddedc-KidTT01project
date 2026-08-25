@@ -1,4 +1,5 @@
 #include "validation.h"
+#include <stddef.h>
 
 bool SensorData_Validate(const SensorData *data)
 {
