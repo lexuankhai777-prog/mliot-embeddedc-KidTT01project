@@ -1,9 +1,7 @@
 #include "dht11.h"
+#include "main.h"
 
 extern TIM_HandleTypeDef htim1;
-
-#define DHT11_PORT GPIOA
-#define DHT11_PIN  GPIO_PIN_1
 
 static void delay_us(uint16_t us) {
     __HAL_TIM_SET_COUNTER(&htim1, 0);
@@ -12,19 +10,19 @@ static void delay_us(uint16_t us) {
 
 static void DHT11_SetPinOutput(void) {
     GPIO_InitTypeDef GPIO_InitStruct = {0};
-    GPIO_InitStruct.Pin = DHT11_PIN;
+    GPIO_InitStruct.Pin = DHT11_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(DHT11_PORT, &GPIO_InitStruct);
+    HAL_GPIO_Init(DHT11_GPIO_Port, &GPIO_InitStruct);
 }
 
 static void DHT11_SetPinInput(void) {
     GPIO_InitTypeDef GPIO_InitStruct = {0};
-    GPIO_InitStruct.Pin = DHT11_PIN;
+    GPIO_InitStruct.Pin = DHT11_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(DHT11_PORT, &GPIO_InitStruct);
+    HAL_GPIO_Init(DHT11_GPIO_Port, &GPIO_InitStruct);
 }
 
 void DHT11_Init(void) {
@@ -36,29 +34,29 @@ DHT11_Result DHT11_Read(float *temperature, float *humidity) {
     uint16_t timeout;
 
     DHT11_SetPinOutput();
-    HAL_GPIO_WritePin(DHT11_PORT, DHT11_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(DHT11_GPIO_Port, DHT11_Pin, GPIO_PIN_RESET);
     HAL_Delay(18); 
     
-    HAL_GPIO_WritePin(DHT11_PORT, DHT11_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(DHT11_GPIO_Port, DHT11_Pin, GPIO_PIN_SET);
     delay_us(20);
     DHT11_SetPinInput();
 
     timeout = 0;
-    while(HAL_GPIO_ReadPin(DHT11_PORT, DHT11_PIN) == GPIO_PIN_SET) {
+    while(HAL_GPIO_ReadPin(DHT11_GPIO_Port, DHT11_Pin) == GPIO_PIN_SET) {
         timeout++;
         if(timeout > 100) return DHT11_TIMEOUT;
         delay_us(1);
     }
     
     timeout = 0;
-    while(HAL_GPIO_ReadPin(DHT11_PORT, DHT11_PIN) == GPIO_PIN_RESET) {
+    while(HAL_GPIO_ReadPin(DHT11_GPIO_Port, DHT11_Pin) == GPIO_PIN_RESET) {
         timeout++;
         if(timeout > 100) return DHT11_TIMEOUT;
         delay_us(1);
     }
     
     timeout = 0;
-    while(HAL_GPIO_ReadPin(DHT11_PORT, DHT11_PIN) == GPIO_PIN_SET) {
+    while(HAL_GPIO_ReadPin(DHT11_GPIO_Port, DHT11_Pin) == GPIO_PIN_SET) {
         timeout++;
         if(timeout > 100) return DHT11_TIMEOUT;
         delay_us(1);
@@ -67,7 +65,7 @@ DHT11_Result DHT11_Read(float *temperature, float *humidity) {
     for(int i = 0; i < 5; i++) {
         for(int j = 0; j < 8; j++) {
             timeout = 0;
-            while(HAL_GPIO_ReadPin(DHT11_PORT, DHT11_PIN) == GPIO_PIN_RESET) {
+            while(HAL_GPIO_ReadPin(DHT11_GPIO_Port, DHT11_Pin) == GPIO_PIN_RESET) {
                 timeout++;
                 if(timeout > 100) return DHT11_TIMEOUT;
                 delay_us(1);
@@ -75,10 +73,10 @@ DHT11_Result DHT11_Read(float *temperature, float *humidity) {
             
             delay_us(40);
             
-            if(HAL_GPIO_ReadPin(DHT11_PORT, DHT11_PIN) == GPIO_PIN_SET) {
+            if(HAL_GPIO_ReadPin(DHT11_GPIO_Port, DHT11_Pin) == GPIO_PIN_SET) {
                 data[i] |= (1 << (7 - j));
                 timeout = 0;
-                while(HAL_GPIO_ReadPin(DHT11_PORT, DHT11_PIN) == GPIO_PIN_SET) {
+                while(HAL_GPIO_ReadPin(DHT11_GPIO_Port, DHT11_Pin) == GPIO_PIN_SET) {
                     timeout++;
                     if(timeout > 100) return DHT11_TIMEOUT;
                     delay_us(1);
