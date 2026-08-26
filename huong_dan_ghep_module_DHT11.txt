@@ -1,0 +1,48 @@
+=================================================================
+       HUONG DAN TICH HOP MODULE DHT11 & UART (MEMBER 1)
+=================================================================
+
+1. PHAN CUNG (PINOUT CONFIGURATION)
+- Cam bien DHT11: 
+  + Chan DATA noi vao chan PA1 cua STM32F103.
+  + Nguon: VCC vao 3.3V, GND chung voi he thong.
+- Giao tiep UART (In du lieu ra Serial Monitor):
+  + Chan TX cua module chuyen doi (CP2102/ST-Link VCP) noi vao PA10 (RX cua STM32).
+  + Chan RX cua module chuyen doi noi vao PA9 (TX cua STM32).
+  + Baud rate: 115200.
+
+2. SAO CHEP FILE MA NGUON (FILE STRUCTURE)
+Integrator can copy 2 file driver vao dung vi trí sau trong project chung:
+- Copy file "dht11.c" vao thu muc: Core/Src/
+- Copy file "dht11.h" vao thu muc: Core/Inc/
+
+3. CAU HINH PHAN CUNG TRONG CUBE MX (HOAC CODE INIT)
+Dam bao project chung da khoi tao cac ngoai vi sau:
+- TIM1: Duoc cau hinh de tao tre micro giay (Prescaler = 71, CounterMode = Up, Period = 65535).
+- USART1: Che do Asynchronous, Baud rate = 115200, Word Length = 8 Bits, Stop Bits = 1, Parity = None.
+- GPIO PA1: Cau hinh ban dau la Input (hoac se duoc thu vien tu xu ly I/O).
+
+4. TICH HOP MA NGUON VAO MAIN.C
+- Them thu vien vao dau file main.c:
+  #include "dht11.h"
+  #include <stdio.h>
+  #include <string.h>
+
+- Khai bao bien hoac gan doan code doc cam bien trong vong lap while(1):
+  while (1)
+  {
+      float temp = 0.0f, hum = 0.0f;
+      DHT11_Result res = DHT11_Read(&temp, &hum);
+      char uart_buf[128];
+
+      if (res == DHT11_OK) {
+          snprintf(uart_buf, sizeof(uart_buf), "[DHT11] T=%d°C H=%d%% RESULT=OK\r\n", (int)temp, (int)hum);
+      } else if (res == DHT11_TIMEOUT) {
+          snprintf(uart_buf, sizeof(uart_buf), "[DHT11] RESULT=TIMEOUT\r\n");
+      } else if (res == DHT11_CHECKSUM_ERROR) {
+          snprintf(uart_buf, sizeof(uart_buf), "[DHT11] RESULT=CHECKSUM_ERROR\r\n");
+      }
+      
+      HAL_UART_Transmit(&huart1, (uint8_t*)uart_buf, strlen(uart_buf), 100);
+      HAL_Delay(2000); 
+  }
