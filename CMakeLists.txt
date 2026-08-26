@@ -48,9 +48,13 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
+    # Application Core
     Core/Src/validation.c
     Core/Src/evaluate.c
     Core/Src/fsm.c
+
+    # DHT11 Driver
+    Core/Src/dht11.c
 )
 
 # Add include paths
