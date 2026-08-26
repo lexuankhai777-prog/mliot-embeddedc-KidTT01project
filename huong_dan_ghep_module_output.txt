@@ -1,0 +1,63 @@
+=================================================================
+       HUONG DAN TICH HOP MODULE OUTPUT (MEMBER 3)
+=================================================================
+
+1. PHAN CUNG (PINOUT CONFIGURATION)
+- Giao tiep UART (Gửi log lên PC):
+  + Chan TX cua module USB-TTL noi vao PA10 (RX cua STM32)[cite: 3].
+  + Chan RX cua module USB-TTL noi vao PA9 (TX cua STM32)[cite: 3].
+  + Baud rate: 115200[cite: 3].
+- Man hinh LCD 16x2 (Qua module I2C):
+  + Chan SCL noi vao PB6 (Dung chung bus I2C voi BMP280 cua Member 2)[cite: 3, 5].
+  + Chan SDA noi vao PB7[cite: 3].
+  + VCC vao 5V, GND chung voi he thong.
+- Cum LED Canh bao & Coi Buzzer:
+  + Green LED (Binh thuong): PB12[cite: 2, 3].
+  + Yellow LED (Canh bao): PB13[cite: 2, 3].
+  + Red LED (Bao dong/Loi): PB14[cite: 2, 3].
+  + Buzzer: PB15 (Luu y quan trong: Day la module Active-Low, tuc la LOW = ON, HIGH = OFF)[cite: 2, 3].
+
+2. SAO CHEP FILE MA NGUON (FILE STRUCTURE)
+Integrator can copy 6 file driver vao dung vi tri sau trong project chung[cite: 3]:
+- Copy cac file .c vao thu muc Core/Src/:
+  + uart_log.c
+  + lcd.c
+  + output.c
+- Copy cac file .h vao thu muc Core/Inc/:
+  + uart_log.h
+  + lcd.h
+  + output.h
+
+3. CAU HINH PHAN CUNG TRONG CUBE MX (HOAC CODE INIT)
+Dam bao project chung da khoi tao cac ngoai vi sau truoc khi goi API:
+- USART1: Che do Asynchronous, Baud rate = 115200, Word Length = 8 Bits, Stop Bits = 1, Parity = None[cite: 1, 3].
+- I2C1: Kich hoat I2C Standard Mode (Thiet lap nay do Member 2 so huu phan low-level, Member 3 chi su dung lai)[cite: 3].
+- GPIO: Cau hinh cac chan PB12, PB13, PB14, PB15 o che do GPIO_Output (Push-Pull, toc do 50MHz)[cite: 2, 3].
+
+4. TICH HOP MA NGUON VAO MAIN.C (HOAC FSM.C)
+- Them thu vien vao dau file tich hop[cite: 3]:
+  #include "app_types.h"
+  #include "uart_log.h"
+  #include "lcd.h"
+  #include "output.h"
+
+- Khai bao khoi tao phan cung ngoai vi (Goi TRUOC vong lap while):
+  UART_Init();
+  Output_Init();
+  // Luu y: LCD_Init() phai duoc goi SAU KHI I2C1_Init() cua Member 2 da chay
+  LCD_Init(); 
+
+- Tich hop vao nhanh UPDATE_OUTPUT hoac ERROR cua May trang thai (FSM)[cite: 2, 3]:
+  // Gia su 'current_data' la SensorData doc duoc, 'sys_status' la SystemStatus tu EvaluateState()
+  
+  if (error_flags != 0) {
+      // Xu ly khi co loi cam bien hoac he thong (FSM State: ERROR / SENSOR_FAULT)[cite: 2, 3]
+      Output_ShowError(error_flags);
+      Output_UpdateLCD(&current_data, STATUS_ALARM, error_flags);
+      UART_WriteString("[OUTPUT] System in ERROR state!\r\n");
+  } else {
+      // Xu ly hien thi binh thuong (FSM State: UPDATE_OUTPUT)[cite: 2, 3]
+      Output_SetStatus(sys_status);
+      Output_UpdateLCD(&current_data, sys_status, 0);
+      UART_WriteString("[OUTPUT] Data updated successfully!\r\n");
+  }
