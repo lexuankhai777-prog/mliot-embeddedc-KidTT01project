@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "i2c_lowlevel.h"
 
-#define SLAVE_ADDRESS_LCD 0x4E // Địa chỉ 8-bit (0x27 dịch trái 1 bit)
+#define SLAVE_ADDRESS_LCD 0x27 // Địa chỉ 7-bit (chưa dịch trái 1 bit)
 
 // Các Public API đã chốt trong Hợp đồng Kỹ thuật
 void LCD_Init(void);
