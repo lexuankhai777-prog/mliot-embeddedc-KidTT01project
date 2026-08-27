@@ -1,0 +1,93 @@
+GHI CHU BAN GIAO TICH HOP BMP280 - MEMBER 2
+================================================
+
+Muc dich
+--------
+File nay ghi lai cac noi dung lien quan den phan BMP280 cua Member 2 de
+Integrator co the khoi phuc lai sau khi main.c va CMakeLists.txt duoc
+git restore.
+
+CAC FILE BMP280 / I2C CAN GIU
+-----------------------------
+- Core/Src/bmp280.c
+- Core/Inc/bmp280.h
+- Core/Src/i2c_lowlevel.c
+- Core/Inc/i2c_lowlevel.h
+
+CAC THAY DOI CAN LUU Y TRUOC KHI RESTORE
+-----------------------------------------
+main.c va CMakeLists.txt cua Member 2 co cac thay doi phuc vu BMP280/I2C.
+Sau khi restore, cac thay doi nay se mat khoi working tree.
+
+Integrator can kiem tra lai:
+1. Cac #include lien quan den BMP280/I2C trong main.c.
+2. I2C1 phai duoc khoi tao truoc khi dung driver BMP280.
+3. BMP280 phai duoc khoi tao truoc khi doc du lieu.
+4. CMakeLists.txt phai bao gom cac file .c cua BMP280/I2C neu project
+   khong tu dong quet source.
+5. Logic BMP280 can duoc ghep vao FSM/application chung, khong copy
+   nguyen vong lap standalone cua Member 2.
+
+PHOI HOP VOI DHT11 - MEMBER 1
+-----------------------------
+- DHT11 DATA -> PA1.
+- TIM1 dung cho delay micro-giay.
+- USART1: 115200 baud, 8 bits, 1 stop bit, no parity.
+- Driver: Core/Src/dht11.c va Core/Inc/dht11.h.
+
+PHOI HOP VOI OUTPUT - MEMBER 3
+------------------------------
+- USART1: 115200.
+- I2C1 dung chung bus voi BMP280.
+- SCL -> PB6; SDA -> PB7.
+- Green LED -> PB12.
+- Yellow LED -> PB13.
+- Red LED -> PB14.
+- Active-Low Buzzer -> PB15.
+
+Diem quan trong: I2C1 la bus dung chung. BMP280 va LCD khong nen tao hai
+bo khoi tao I2C rieng. LCD_Init() phai duoc goi sau khi I2C1 da duoc
+khoi tao.
+
+TRINH TU TICH HOP DE XUAT
+--------------------------
+HAL/System init
+ -> GPIO init
+ -> TIM1 init
+ -> USART1 init
+ -> I2C1 init
+ -> BMP280 init
+ -> UART_Init()
+ -> Output_Init()
+ -> LCD_Init()
+ -> FSM/application loop
+      -> doc DHT11
+      -> doc BMP280
+      -> danh gia trang thai
+      -> cap nhat Output/LCD/UART
+
+ERROR HANDLING
+--------------
+Cac ket qua loi BMP280 da duoc Member 2 kiem thu trong standalone test.
+Khi ghep vao FSM, giu nguyen y nghia loi cua driver va map vao co che
+error_flags/SystemStatus cua project chung. Neu BMP280 loi, khong dung
+du lieu loi de dua vao UPDATE_OUTPUT.
+
+CHECKLIST INTEGRATOR
+--------------------
+[ ] Giu 4 file BMP280/I2C.
+[ ] Kiem tra CMakeLists.txt.
+[ ] I2C1 khoi tao mot lan va dung chung cho BMP280 + LCD.
+[ ] Giu USART1 = 115200, 8N1.
+[ ] Giu PA1 cho DHT11.
+[ ] Giu PB6/PB7 cho I2C.
+[ ] Giu PB12/PB13/PB14/PB15 cho Output.
+[ ] Ghep BMP280 vao FSM chung.
+[ ] Ghep loi BMP280 vao error_flags/SystemStatus.
+[ ] Build lai.
+[ ] Test lai BMP280 + DHT11 + LCD/LED/Buzzer + UART.
+
+LUU Y
+----
+Day la handoff note, khong phai mot file source. Ten API cu the cua
+BMP280 nen duoc lay truc tiep tu bmp280.h hien tai, khong tu dat lai.
