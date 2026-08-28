@@ -61,7 +61,7 @@ echo ===============================================
 echo Build completed successfully!
 echo.
 
-STM32_Programmer_CLI -c port=SWD sn=%STLINK_SN% -w build/%PROJECT_NAME%.bin 0x08000000 -v -rst
+STM32_Programmer_CLI -c port=SWD -w build/%PROJECT_NAME%.bin 0x08000000 -v -rst
 
 pause
 endlocal

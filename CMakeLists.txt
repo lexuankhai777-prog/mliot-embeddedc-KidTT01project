@@ -53,8 +53,17 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/evaluate.c
     Core/Src/fsm.c
 
-    # DHT11 Driver
+    # DHT11
     Core/Src/dht11.c
+
+    # BMP280 / Shared I2C
+    Core/Src/i2c_lowlevel.c
+    Core/Src/bmp280.c
+
+    # Output
+    Core/Src/lcd.c
+    Core/Src/uart_log.c
+    Core/Src/output.c
 )
 
 # Add include paths

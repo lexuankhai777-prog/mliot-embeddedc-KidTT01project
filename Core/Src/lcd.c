@@ -16,8 +16,7 @@ static void LCD_Write_Cmd(uint8_t cmd) {
     data_t[2] = data_l | 0x0C;  // EN=1, RS=0
     data_t[3] = data_l | 0x08;  // EN=0, RS=0
     
-    I2C1_WriteBuffer(SLAVE_ADDRESS_LCD, data_t, 4);
-}
+(void)I2C_Write(SLAVE_ADDRESS_LCD, data_t, 4);}
 
 // Hàm đẩy 1 ký tự hiển thị xuống LCD qua I2C
 static void LCD_Write_Data(uint8_t data) {
@@ -30,7 +29,7 @@ static void LCD_Write_Data(uint8_t data) {
     data_t[2] = data_l | 0x0D;  // EN=1, RS=1
     data_t[3] = data_l | 0x09;  // EN=0, RS=1
     
-    I2C1_WriteBuffer(SLAVE_ADDRESS_LCD, data_t, 4);
+ (void)I2C_Write(SLAVE_ADDRESS_LCD, data_t, 4);
 }
 
 void LCD_Init(void) {
