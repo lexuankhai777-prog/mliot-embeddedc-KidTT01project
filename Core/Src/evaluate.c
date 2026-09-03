@@ -1,34 +1,36 @@
 #include "evaluate.h"
 
-
 /* ==========================================================
- * TEMPERATURE THRESHOLDS (degree Celsius)
+ * TEMPERATURE THRESHOLDS
+ * Unit: degree Celsius
  * ========================================================== */
 
-#define TEMP_ALARM_LOW       20.0f
-#define TEMP_NORMAL_LOW      22.0f
-#define TEMP_NORMAL_HIGH     34.0f
-#define TEMP_ALARM_HIGH      38.0f
-
-
-/* ==========================================================
- * HUMIDITY THRESHOLDS (%RH)
- * ========================================================== */
-
-#define HUM_ALARM_LOW        35.0f
-#define HUM_NORMAL_LOW       45.0f
-#define HUM_NORMAL_HIGH      70.0f
-#define HUM_ALARM_HIGH       80.0f
+#define TEMP_ALARM_LOW       15.0f
+#define TEMP_NORMAL_LOW      20.0f
+#define TEMP_NORMAL_HIGH     30.0f
+#define TEMP_ALARM_HIGH      35.0f
 
 
 /* ==========================================================
- * PRESSURE THRESHOLDS (hPa)
+ * HUMIDITY THRESHOLDS
+ * Unit: %RH
  * ========================================================== */
 
-#define PRESS_ALARM_LOW      995.0f
-#define PRESS_NORMAL_LOW     1000.0f
-#define PRESS_NORMAL_HIGH    1015.0f
-#define PRESS_ALARM_HIGH     1020.0f
+#define HUM_ALARM_LOW        30.0f
+#define HUM_NORMAL_LOW       40.0f
+#define HUM_NORMAL_HIGH      60.0f
+#define HUM_ALARM_HIGH       70.0f
+
+
+/* ==========================================================
+ * PRESSURE THRESHOLDS
+ * Unit: hPa
+ * ========================================================== */
+
+#define PRESS_ALARM_LOW      985.0f
+#define PRESS_NORMAL_LOW     995.0f
+#define PRESS_NORMAL_HIGH    1020.0f
+#define PRESS_ALARM_HIGH     1030.0f
 
 
 SystemStatus EvaluateState(const SensorData *data)
@@ -37,14 +39,10 @@ SystemStatus EvaluateState(const SensorData *data)
     float humidity    = data->humidity;
     float pressure    = data->pressure;
 
-
-    /* ======================================================
-     * ALARM CHECK
-     *
-     * Any parameter in an ALARM range makes the whole
-     * environmental status ALARM.
-     * ====================================================== */
-
+    /*
+     * ALARM:
+     * worst-case wins.
+     */
     if ((temperature < TEMP_ALARM_LOW) ||
         (temperature >= TEMP_ALARM_HIGH))
     {
@@ -63,14 +61,11 @@ SystemStatus EvaluateState(const SensorData *data)
         return STATUS_ALARM;
     }
 
-
-    /* ======================================================
-     * WARNING CHECK
-     *
-     * At this point no parameter is in ALARM.
-     * Any parameter outside the NORMAL range becomes WARNING.
-     * ====================================================== */
-
+    /*
+     * WARNING:
+     * no parameter is in ALARM,
+     * but at least one is outside NORMAL range.
+     */
     if ((temperature < TEMP_NORMAL_LOW) ||
         (temperature > TEMP_NORMAL_HIGH))
     {
@@ -88,11 +83,6 @@ SystemStatus EvaluateState(const SensorData *data)
     {
         return STATUS_WARNING;
     }
-
-
-    /* ======================================================
-     * NORMAL
-     * ====================================================== */
 
     return STATUS_NORMAL;
 }

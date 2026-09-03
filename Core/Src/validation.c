@@ -8,12 +8,30 @@ bool SensorData_Validate(const SensorData *data)
         return false;
     }
 
-    if (data->humidity < 0.0f || data->humidity > 100.0f)
+    /*
+     * DHT11 temperature measurement range:
+     * approximately 0 to 50 degree Celsius.
+     */
+    if ((data->temperature < 0.0f) ||
+        (data->temperature > 50.0f))
     {
         return false;
     }
 
-    if (data->pressure <= 0.0f)
+    /*
+     * Physical relative humidity range.
+     */
+    if ((data->humidity < 0.0f) ||
+        (data->humidity > 100.0f))
+    {
+        return false;
+    }
+
+    /*
+     * BMP280 pressure measurement range.
+     */
+    if ((data->pressure < 300.0f) ||
+        (data->pressure > 1100.0f))
     {
         return false;
     }

@@ -10,6 +10,7 @@
 
 #define FSM_SAMPLE_PERIOD_MS   2000U
 #define FSM_ERROR_THRESHOLD    3U
+#define STATUS_CONFIRM_COUNT 3U
 
 
 static FsmState current_state = FSM_IDLE;
@@ -17,6 +18,8 @@ static FsmState current_state = FSM_IDLE;
 static SensorData current_data;
 
 static SystemStatus current_status = STATUS_NORMAL;
+static SystemStatus candidate_status = STATUS_NORMAL;
+static uint8_t candidate_count = 0U;
 
 static uint32_t error_flags = ERR_NONE;
 
@@ -36,6 +39,9 @@ static void FSM_ShowErrorOutput(void)
 {
     current_data.valid = false;
 
+    candidate_status = current_status;
+    candidate_count = 0U;
+
     Output_ShowError(error_flags);
 
     Output_UpdateLCD(&current_data,
@@ -53,6 +59,8 @@ void FSM_Init(void)
     current_data.valid       = false;
 
     current_status = STATUS_NORMAL;
+    candidate_status = STATUS_NORMAL;
+    candidate_count = 0U;
 
     error_flags = ERR_NONE;
     error_count = 0U;
@@ -77,8 +85,7 @@ void FSM_Process(void)
          * ================================================== */
         case FSM_IDLE:
         {
-            if ((HAL_GetTick() - last_sample_tick)
-                    >= FSM_SAMPLE_PERIOD_MS)
+            if ((HAL_GetTick() - last_sample_tick)>= FSM_SAMPLE_PERIOD_MS)
             {
                 last_sample_tick = HAL_GetTick();
 
@@ -260,15 +267,55 @@ void FSM_Process(void)
          * ================================================== */
         case FSM_EVALUATE:
         {
-            current_status =
-                EvaluateState(
-                    &current_data);
+            SystemStatus instant_status =
+                EvaluateState(&current_data);
+
+            /*
+            * If the current valid sample agrees with the
+            * already-confirmed status, there is no pending
+            * transition.
+            */
+            if (instant_status == current_status)
+            {
+                candidate_status = current_status;
+                candidate_count = 0U;
+            }
+            else
+            {
+                /*
+                * Same candidate appears again.
+                */
+                if (instant_status == candidate_status)
+                {
+                    candidate_count++;
+                }
+                else
+                {
+                    /*
+                    * A different candidate appeared.
+                    * Start counting again from sample 1.
+                    */
+                    candidate_status = instant_status;
+                    candidate_count = 1U;
+                }
+
+                /*
+                * Commit transition only after
+                * 3 consecutive valid samples.
+                */
+                if (candidate_count >= STATUS_CONFIRM_COUNT)
+                {
+                    current_status = candidate_status;
+
+                    candidate_status = current_status;
+                    candidate_count = 0U;
+                }
+            }
 
             UART_WriteString(
                 "[FSM] EVALUATE -> UPDATE_OUTPUT\r\n");
 
-            current_state =
-                FSM_UPDATE_OUTPUT;
+            current_state = FSM_UPDATE_OUTPUT;
 
             break;
         }
